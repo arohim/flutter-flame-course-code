@@ -6,6 +6,8 @@ import 'package:flame/input.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'utils.dart';
+
 void main() {
   runApp(
     GameWidget(game: Exercise1Game()),
@@ -36,36 +38,53 @@ class MyRectangleShape extends RectangleComponent
           anchor: anchor,
           priority: priority,
           position: position,
-        ) {
-    anchor = Anchor.topLeft;
-  }
+        );
 
   double next(int min, int max) =>
       (min + _random.nextInt(max - min)).toDouble();
 
   @override
+  Future<void>? onLoad() {
+    anchor = Anchor.center;
+    return super.onLoad();
+  }
+
+  @override
   void update(double dt) {
     super.update(dt);
     position += velocity;
-    var gameSize = gameRef.size;
-    var topLeftPos = position.x;
-    var topRightPos = position.y;
-    var bottomLeftPos = position.y + size.y;
-    var bottomRightPos = position.x + size.x;
-    var isHitBoundary = topLeftPos <= 0 ||
-        topRightPos >= gameSize.y ||
-        bottomLeftPos >= gameSize.x ||
-        bottomRightPos >= gameSize.y;
 
-    if (isHitBoundary) {
-      print(
-          "isHitBoundary $isHitBoundary topLeftPos: $topLeftPos,topRightPos:$topRightPos"
-              ",bottomLeftPos:$bottomLeftPos,bottomRightPos:$bottomRightPos");
-      var randomVelocity = Vector2(next(-4, 4), next(-4, 4));
-      if (randomVelocity == Vector2(0, 0)) {
-        velocity = Vector2(0, 1).normalized() * 0.5;
-      }
+    // remove this component when it gone from the screen
+    var gameSize = gameRef.size;
+    var top = position.y - (size.y / 2.0) - 20.0;
+    var left = position.x - (size.x / 2.0) - 20.0;
+    var right = position.x + (size.x / 2.0) + 20.0;
+    var bottom = position.y + (size.y / 2.0) + 20.0;
+    var isOffTheScreen =
+        top >= gameSize.y || left >= gameSize.x || bottom <= 0 || right <= 0;
+    if (isOffTheScreen) {
+      parent?.remove(this);
     }
+    // experiment random velocity when it hit bounds
+    // var gameSize = gameRef.size;
+    // var topLeftPos = position.x;
+    // var topRightPos = position.x + size.x;
+    // var bottomLeftPos = position.y + size.y;
+    // var bottomRightPos = position.x + size.x + size.y;
+    // var isHitBoundary = topLeftPos <= 0 ||
+    //     topRightPos >= gameSize.x ||
+    //     topRightPos <= 0 ||
+    //     bottomLeftPos <= 0 ||
+    //     bottomLeftPos >= gameSize.y ||
+    //     bottomRightPos >= gameSize.x ||
+    //     bottomRightPos >= gameSize.y;
+    //
+    // if (isHitBoundary) {
+    //   print(
+    //       "isHitBoundary $isHitBoundary topLeftPos: $topLeftPos,topRightPos:$topRightPos"
+    //       ",bottomLeftPos:$bottomLeftPos,bottomRightPos:$bottomRightPos");
+    //   velocity = Utils.generateRandomVelocity(gameRef.size, 10, 15);
+    // }
   }
 }
 
@@ -86,12 +105,8 @@ class Exercise1Game extends FlameGame with TapDetector, DoubleTapDetector {
   void onTapUp(TapUpInfo info) {
     super.onTapUp(info);
     var tapPosition = info.eventPosition.game;
-    final randomPosition =
-        Vector2(next(0, size.x.toInt() - 50), next(0, size.y.toInt() - 50));
-    var randomVelocity = Vector2(next(-2, 4), next(-2, 4));
-    if (randomVelocity == Vector2(0, 0)) {
-      randomVelocity = Vector2(0, 1);
-    }
+    final randomPosition = Utils.generateRandomPosition(size, Vector2(20, 20));
+    var randomVelocity = Utils.generateRandomVelocity(size, 10, 15);
 
     final handled = children.any((component) {
       if (component is MyRectangleShape &&
