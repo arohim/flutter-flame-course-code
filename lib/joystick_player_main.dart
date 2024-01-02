@@ -3,6 +3,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/palette.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_squares/bullet.dart';
 import 'package:flame_squares/utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,6 +21,8 @@ class JoyStickGame extends FlameGame with HasDraggables, HasTappables {
   Future<void>? onLoad() {
     final knobPaint = BasicPalette.green.withAlpha(200).paint();
     final backgroundPaint = BasicPalette.green.withAlpha(100).paint();
+
+    startBgmMusic();
 
     joyStick = JoystickComponent(
       knob: CircleComponent(paint: knobPaint, radius: 15),
@@ -56,6 +59,12 @@ class JoyStickGame extends FlameGame with HasDraggables, HasTappables {
       '${joystickPlayer.angle.toStringAsFixed(5)} radians obc: ${children.length}',
       Vector2(20, size.y - 40),
     );
+  }
+
+  // initialize and play the background music loop
+  void startBgmMusic() {
+    FlameAudio.bgm.initialize();
+    FlameAudio.bgm.play('race_to_mars.mp3');
   }
 }
 

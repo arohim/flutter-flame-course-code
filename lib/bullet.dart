@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_squares/utils.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,10 @@ class Bullet extends PositionComponent with HasGameRef {
     // _velocity is a unit vector so we need to make it account for the actual
     // speed.
     _velocity = (_velocity)..scaleTo(_speed);
+    // sounds used for the shot
+    FlameAudio.audioCache.play('missile_shot.wav');
+    // layered sounds for missile transition/flyby
+    FlameAudio.audioCache.play('missile_flyby.wav');
   }
 
   @override
@@ -44,7 +49,10 @@ class Bullet extends PositionComponent with HasGameRef {
   void update(double dt) {
     position.add(_velocity * dt);
     if (Utils.isPositionOutOfBounds(gameRef.size, position)) {
-      parent?.remove(this);
+      removeFromParent();
+      FlameAudio.audioCache.play('missile_hit.wav');
+      // render the camera shake effect for a short duration
+      gameRef.camera.shake(duration: 0.25, intensity: 5);
     }
   }
 }
