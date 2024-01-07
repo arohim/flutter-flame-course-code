@@ -9,36 +9,84 @@ class VerticalText extends PositionComponent {
   int totalHeightText = 0;
   int totalWidthText = 0;
   int bottomColorIdx = 0;
+  int totalChars = 30;
   Random random = Random();
   List<MatrixTextComponent> textComponents = [];
   double maxSpeed = 0.5;
-  var xPosition = 0.0;
-  final matrixTextPaint = TextPaint(
+  final List<String> _characters = [];
+  var textPaint = TextPaint(
     style: const TextStyle(
-      color: Colors.transparent,
+      color: Colors.white,
       fontSize: 12,
     ),
   );
+  late Timer interval;
+  int pt = 0;
+  double spaceBetweenText = 12;
 
-  VerticalText({
-    required this.xPosition
-  });
+  VerticalText({required this.textPaint, required this.totalChars}) {
+    spaceBetweenText = textPaint.style.fontSize ?? 12.0;
+    interval = Timer(
+      1,
+      onTick: () {
+        if (pt <= 0) {
+          pt = totalChars - 1;
+        }
+        pt--;
+
+        position = Vector2(position.x, position.y + spaceBetweenText);
+        if (position.y > size.y) {
+          position = Vector2(position.x, -(spaceBetweenText * totalChars));
+        }
+
+        for (int childIdx = children.length - 1; childIdx > 0; childIdx--) {
+          final element = textComponents[childIdx];
+          final charIdx = (pt - childIdx).abs();
+          element.text = _characters[charIdx];
+        }
+      },
+      repeat: true,
+    );
+    interval.start();
+  }
 
   @override
   Future<void>? onLoad() {
-    totalHeightText = size.y ~/ 12.0;
-    totalWidthText = size.x ~/ 12.0;
+    totalHeightText = size.y ~/ spaceBetweenText;
+    totalWidthText = size.x ~/ spaceBetweenText;
     bottomColorIdx = 0;
+    pt = totalChars - 1;
     var yIndx = 0;
-    for (yIndx = 0; yIndx < totalHeightText; yIndx++) {
-      var textComponent = MatrixTextComponent(
+    for (int charIdx = 0; charIdx < totalChars; charIdx++) {
+      _characters.add(String.fromCharCode(random.nextInt(512)));
+    }
+    for (yIndx = 0; yIndx < totalChars; yIndx++) {
+      var alpha = (yIndx * 1.0) / (totalChars - 1);
+      var newTextPaint = textPaint;
+      if (yIndx == totalChars - 1) {
+        newTextPaint = textPaint.copyWith(
+          (p0) => TextStyle(
+            color: Colors.white,
+            fontSize: p0.fontSize,
+          ),
+        );
+      } else {
+        newTextPaint = textPaint.copyWith(
+          (p0) => TextStyle(
+            color: Colors.green.withOpacity(alpha),
+            fontSize: p0.fontSize,
+          ),
+        );
+      }
+      var text = MatrixTextComponent(
         index: yIndx,
-        text: String.fromCharCode(random.nextInt(512)),
-        textRenderer: matrixTextPaint,
-        position: Vector2(12.0 * xPosition, 12.0 * yIndx),
+        text: _characters[yIndx],
+        textRenderer: newTextPaint,
+        position:
+            Vector2(spaceBetweenText * position.x, spaceBetweenText * yIndx),
       );
-      textComponents.add(textComponent);
-      add(textComponent);
+      textComponents.add(text);
+      add(text);
     }
     return super.onLoad();
   }
@@ -46,36 +94,7 @@ class VerticalText extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    bottomColorIdx += random.nextInt(2);
-    if (bottomColorIdx >= totalHeightText + 50) {
-      bottomColorIdx = 0;
-    }
-    for (int childIdx = 0; childIdx < textComponents.length; childIdx++) {
-      final element = textComponents[childIdx];
-      var topAlpha = (childIdx - bottomColorIdx) * 2 + 100;
-      if (topAlpha < 0) {
-        topAlpha = 0;
-      }
-      if (childIdx == bottomColorIdx) {
-        element.textRenderer = matrixTextPaint.copyWith((p0) =>
-            TextStyle(
-              color: Colors.white,
-              fontSize: p0.fontSize,
-            ));
-      } else if (childIdx <= bottomColorIdx) {
-        element.textRenderer = matrixTextPaint.copyWith((p0) =>
-            TextStyle(
-              color: Colors.green.withAlpha(topAlpha),
-              fontSize: p0.fontSize,
-            ));
-      } else {
-        element.textRenderer = matrixTextPaint.copyWith((p0) =>
-            TextStyle(
-              color: Colors.transparent,
-              fontSize: p0.fontSize,
-            ));
-      }
-    }
+    interval.update(dt);
   }
 
   @override
