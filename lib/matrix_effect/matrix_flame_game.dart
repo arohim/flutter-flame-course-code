@@ -47,17 +47,6 @@ class MatrixGame extends FlameGame with DoubleTapDetector, FPSCounter {
           ),
       );
     }
-    final maxStartY2 = (size.y / 5) as int;
-    for (i = 0; i < totalWidthText2; i++) {
-      add(
-        VerticalText(textPaint: matrixTextPaint2, totalChars: 20)
-          ..size = size
-          ..position = Vector2(
-            i * 1.0,
-            _random.nextInt(maxStartY2).toDouble() - (8.0 * 20),
-          ),
-      );
-    }
     return super.onLoad();
   }
 

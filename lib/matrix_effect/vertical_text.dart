@@ -12,7 +12,6 @@ class VerticalText extends PositionComponent {
   int totalChars = 30;
   Random random = Random();
   List<MatrixTextComponent> textComponents = [];
-  double maxSpeed = 0.5;
   final List<String> _characters = [];
   var textPaint = TextPaint(
     style: const TextStyle(
@@ -26,8 +25,9 @@ class VerticalText extends PositionComponent {
 
   VerticalText({required this.textPaint, required this.totalChars}) {
     spaceBetweenText = textPaint.style.fontSize ?? 12.0;
+    final intervalLimit = doubleInRange(random, 0.1, 1.0);
     interval = Timer(
-      1,
+      intervalLimit,
       onTick: () {
         if (pt <= 0) {
           pt = totalChars - 1;
@@ -82,8 +82,10 @@ class VerticalText extends PositionComponent {
         index: yIndx,
         text: _characters[yIndx],
         textRenderer: newTextPaint,
-        position:
-            Vector2(spaceBetweenText * position.x, spaceBetweenText * yIndx),
+        position: Vector2(
+          spaceBetweenText * position.x,
+          spaceBetweenText * yIndx,
+        ),
       );
       textComponents.add(text);
       add(text);
@@ -103,4 +105,7 @@ class VerticalText extends PositionComponent {
     var yIndx = 0;
     var xIndx = 5;
   }
+
+  double doubleInRange(Random source, num start, num end) =>
+      source.nextDouble() * (end - start) + start;
 }
